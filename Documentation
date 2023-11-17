@@ -1,0 +1,12 @@
+This file is used for documenting the project. The project will be completing using three iterations.
+
+    * 1st iteration: 24. Nov
+    * 2nd iteration: 1. Des
+    * 3rd iteration: 8. Des
+
+Goal for the 1st iteration:
+
+* Get an overview of the template code and distribute work among the members.
+* Start creating a protocol for the system.
+* Implement TCP sockets to the server and the client.
+* Have a minimal viable product.
