@@ -1,0 +1,22 @@
+# Protocol
+
+Message are separated by newline.
+
+The client always sends a request first, the server responds.
+There can be several requests/responses during one connection.
+The server can handle multiple clients.
+
+The following requests could be sent from client to server:
+
+*
+*
+*
+
+Server can respond with:
+
+* "o"  - performed the necessary operation
+* "eM"  - if the operation failed, where M is an error message - string until the newline. For
+  example, if the error message is "Invalid operation", the response will be
+  "eInvalid operation"
+*
+*
