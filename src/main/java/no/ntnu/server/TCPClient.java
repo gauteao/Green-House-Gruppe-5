@@ -1,66 +1,117 @@
 package no.ntnu.server;
 
-import java.io.*;
-import java.net.*;
+import static no.ntnu.server.TCPServer.TCP_PORT;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import no.ntnu.command.Command;
+import no.ntnu.command.VersionCommand;
+
+/**
+ * TCP Client.
+ */
 public class TCPClient {
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
-    private final String SERVER_IP = "localhost"; // Replace with your server's IP address
-    private final int SERVER_PORT = 6969; // Replace with your server's port number
+  private static final String SERVER_HOST = "localhost";
+  private Socket socket;
+  private BufferedReader socketReader;
+  private ObjectOutputStream objectWriter;
 
-    public TCPClient() {
-        try {
-            socket = new Socket(SERVER_IP, SERVER_PORT);
 
-            // Create input and output streams for communication
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
+  /**
+   * Run the web client.
+   *
+   * @param args Command line arguments. Not used.
+   */
+  public static void main(String[] args) {
+    TCPClient client = new TCPClient();
+    client.run();
+  }
 
-            // Start a thread for reading incoming messages from the server
-            Thread readThread = new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println("Received message from server: " + message);
-                        // Process the received message here
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            readThread.start();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+  private void run() {
+    if (connect()) {
+      sendAndReceive(new VersionCommand());
+      disconnect();
     }
+    System.out.println("Exiting...");
+  }
 
-    // Method to send a message to the server
-    public void sendMessage(String message) {
-        out.println(message);
+  public void sendAndReceive(Command command) {
+    if (sendToServer(command)) {
+      String response = receiveOneLineFromServer();
+      if (response != null) {
+        System.out.println("Server's response: " + response);
+      }
     }
+  }
 
-    // Method to close the client socket and associated streams
-    public void closeClient() {
-        try {
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (socket != null) socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+  /**
+   * Establish a connection to a TCP server (web server).
+   *
+   * @return True on success, false on error.
+   */
+  public boolean connect() {
+    boolean success = false;
+    try {
+      socket = new Socket(SERVER_HOST, TCP_PORT);
+      socketReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      objectWriter = new ObjectOutputStream(socket.getOutputStream());
+      System.out.println("Connection established");
+      success = true;
+    } catch (IOException e) {
+      System.err.println("Could not connect to the server: " + e.getMessage());
     }
-    
-    public static void main(String[] args) {
-        TCPClient client = new TCPClient();
-        client.sendMessage("Hello from the client!");
-        // Add more test messages or logic here
-        // client.sendMessage("Another message");
-        // ...
-        // Remember to close the client when done testing
-        // client.closeClient();
+    return success;
+  }
+
+  /**
+   * Send a message to the TCP server.
+   * We assume that the connection is already established.
+   *
+   * @param message The message to send
+   * @return True when the message is successfully sent, false on error.
+   */
+  public boolean sendToServer(Command message) {
+    boolean sent = false;
+    try {
+      objectWriter.writeObject(message);
+      sent = true;
+    } catch (Exception e) {
+      System.err.println("Error while sending the message: " + e.getMessage());
     }
+    return sent;
+  }
+
+  /**
+   * Receive one line of text from the server (the TCP socket).
+   *
+   * @return The received line or null on error.
+   */
+  private String receiveOneLineFromServer() {
+    String response = null;
+    try {
+      response = socketReader.readLine();
+    } catch (IOException e) {
+      System.err.println("Error while receiving data from the server: " + e.getMessage());
+    }
+    return response;
+  }
+
+  /**
+   * Close the TCP connection.
+   */
+  public void disconnect() {
+    try {
+      if (socket != null) {
+        socket.close();
+        System.out.println("Socket closed");
+      } else {
+        System.err.println("Can't close a socket which has not been open");
+      }
+    } catch (IOException e) {
+      System.err.println("Could not close the socket: " + e.getMessage());
+    }
+  }
 }
-

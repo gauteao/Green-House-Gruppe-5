@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import no.ntnu.command.EchoCommand;
 import no.ntnu.listeners.greenhouse.NodeStateListener;
+import no.ntnu.server.TCPClient;
 import no.ntnu.tools.Logger;
 
 /**
@@ -23,7 +26,7 @@ public class GreenhouseSimulator {
    *             socket communication
    */
   public GreenhouseSimulator(boolean fake) {
-    this.fake = fake;
+    this.fake = true;
   }
 
   /**
@@ -67,7 +70,29 @@ public class GreenhouseSimulator {
 
   private void initiateRealCommunication() {
     // TODO - here you can set up the TCP or UDP communication
+    try {
+            TCPClient tcpClient = new TCPClient();
+
+            // Connect to the server
+            if (tcpClient.connect()) {
+                // Perform tasks related to greenhouse simulation
+                sendInitializationMessage(tcpClient); // Example: Sending an initialization message
+
+                // You can add more code here to send other simulation-related messages
+
+                // Disconnect from the server when done
+                tcpClient.disconnect();
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Handle exceptions according to your application's requirements
+        }
   }
+
+  private void sendInitializationMessage(TCPClient tcpClient) {
+    // Example: Sending an initialization message to the server
+    // You'll need to define the actual message format based on your application's requirements
+    tcpClient.sendAndReceive(new EchoCommand("Initializing greenhouse simulation...")); // Modify this method based on your TCPClient implementation
+}
 
   private void initiateFakePeriodicSwitches() {
     periodicSwitches.add(new PeriodicSwitch("Window DJ", nodes.get(1), 2, 20000));
