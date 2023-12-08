@@ -1,75 +1,68 @@
 package no.ntnu.server;
 
 import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * A TCP server, handles multiple clients.
+ */
 public class TCPServer {
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
+  public static final int TCP_PORT = 1235;
+  private ServerSocket serverSocket;
+  private boolean isRunning;
 
-    public TCPServer(int port) {
-        try {
-            serverSocket = new ServerSocket(port);
-            System.out.println("Server started. Waiting for clients...");
+  public static void main(String[] args) {
+    TCPServer server = new TCPServer();
+    server.run();
+  }
 
-            // Accept client connections
-            clientSocket = serverSocket.accept();
-            System.out.println("Client connected: " + clientSocket.getInetAddress());
-
-            // Setup input and output streams for communication with the client
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-
-            // Start a thread for reading incoming messages from the client
-            Thread readThread = new Thread(() -> {
-                try {
-                    String message;
-                    while ((message = in.readLine()) != null) {
-                        System.out.println("Received message from client: " + message);
-                        // Process the received message here
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            readThread.start();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+  private void run() {
+    if (openListeningSocket()) {
+      isRunning = true;
+      while (isRunning) {
+        Socket clientSocket = acceptNextClient();
+        TCPClientHandler clientHandler = new TCPClientHandler(clientSocket);
+        clientHandler.run();
+      }
     }
 
-    public void sendMessageToClient(String message) {
-        if (out != null) {
-            out.println(message);
-        }
+    System.out.println("TCPServer exiting...");
+  }
+
+
+  /**
+   * Open a listening TCP socket.
+   *
+   * @return True on success, false on error.
+   */
+  private boolean openListeningSocket() {
+    boolean success = false;
+    try {
+      serverSocket = new ServerSocket(TCP_PORT);
+      System.out.println("TCPServer listening on port " + TCP_PORT);
+      success = true;
+    } catch (IOException e) {
+      System.err.println("Could not open a listening socket on port " + TCP_PORT
+          + ", reason: " + e.getMessage());
     }
+    return success;
+  }
 
-    public void stopServer() {
-        try {
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (clientSocket != null) clientSocket.close();
-            if (serverSocket != null) serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+  private Socket acceptNextClient() {
+    Socket clientSocket = null;
+    try {
+      clientSocket = serverSocket.accept();
+    } catch (IOException e) {
+      System.err.println("Could not accept the next client: " + e.getMessage());
     }
+    return clientSocket;
+  }
 
-    public static void main(String[] args) {
-        int portNumber = 6969; // Replace with your desired port number
-        TCPServer server = new TCPServer(portNumber);
-
-        // Example sending message to the connected client
-        server.sendMessageToClient("Hello from the server!");
-
-        // Remember to stop the server when done
-        // server.stopServer();
-    }
+  /**
+   * Shut down the server.
+   */
+  public void shutdown() {
+    isRunning = false;
+  }
 }
