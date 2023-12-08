@@ -7,6 +7,7 @@ import java.net.Socket;
 public class Server {
     
     private ServerSocket serverSocket;
+    private volatile boolean isRunning = true;
 
     public Server(ServerSocket serverSocket){
         this.serverSocket = serverSocket;
@@ -16,7 +17,7 @@ public class Server {
 
         try {
 
-            while(!serverSocket.isClosed()){
+            while(isRunning && !serverSocket.isClosed()){
                 Socket socket = serverSocket.accept();
                 System.out.println("A new client has connected");
                 ClientHandler clientHandler = new ClientHandler(socket);
@@ -25,12 +26,17 @@ public class Server {
                 thread.start();
             }
         } catch (IOException e){
-            closeServerSocket();
+           if(!serverSocket.isClosed()){
+            e.printStackTrace();
+           }
+        } finally {
+             closeServerSocket();
         }
     }
 
         public void closeServerSocket(){
             try{
+                isRunning = false;
                 if(serverSocket != null){
                     serverSocket.close();
                 }

@@ -1,9 +1,13 @@
 package no.ntnu.greenhouse;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import no.ntnu.Server.Server;
 import no.ntnu.listeners.greenhouse.NodeStateListener;
 import no.ntnu.tools.Logger;
 
@@ -15,6 +19,7 @@ public class GreenhouseSimulator {
 
   private final List<PeriodicSwitch> periodicSwitches = new LinkedList<>();
   private final boolean fake;
+  private Server server;
 
   /**
    * Create a greenhouse simulator.
@@ -23,7 +28,7 @@ public class GreenhouseSimulator {
    *             socket communication
    */
   public GreenhouseSimulator(boolean fake) {
-    this.fake = fake;
+    this.fake = false;
   }
 
   /**
@@ -65,9 +70,16 @@ public class GreenhouseSimulator {
     }
   }
 
-  private void initiateRealCommunication() {
-    // TODO - here you can set up the TCP or UDP communication
-  }
+private void initiateRealCommunication() {
+    try {
+        ServerSocket serverSocket = new ServerSocket(1234); 
+        server = new Server(serverSocket);
+        server.startServer();
+        Logger.info("Real communication started - Server listening on port 1234");
+    } catch (IOException e) {
+        Logger.error("Error starting the server: " + e.getMessage());
+    }
+}
 
   private void initiateFakePeriodicSwitches() {
     periodicSwitches.add(new PeriodicSwitch("Window DJ", nodes.get(1), 2, 20000));
@@ -90,7 +102,9 @@ public class GreenhouseSimulator {
         periodicSwitch.stop();
       }
     } else {
-      // TODO - here you stop the TCP/UDP communication
+      server.closeServerSocket();
+      Logger.info("Server stopped");
+
     }
   }
 
