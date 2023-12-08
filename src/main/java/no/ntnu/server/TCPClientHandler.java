@@ -12,7 +12,7 @@ import no.ntnu.command.VersionCommand;
 /**
  * Handle one TCP client connection.
  */
-public class TCPClientHandler {
+public class TCPClientHandler implements Runnable{
   private static final String VERSION_RESPONSE = "Server_V1.0";
   private final Socket clientSocket;
   private ObjectInputStream objectReader;
@@ -59,13 +59,17 @@ public class TCPClientHandler {
     return success;
   }
 
+  /**
+   * Handles incoming client requests and processes them.
+   */
+
   private void handleClientRequests() {
     Command command;
     boolean shouldContinue;
     do {
       command = receiveClientCommand();
       shouldContinue = handleCommand(command);
-    } while (shouldContinue);
+    } while (shouldContinue && !clientSocket.isClosed());
   }
 
   /**
@@ -88,8 +92,8 @@ public class TCPClientHandler {
   /**
    * Handle one command from the client.
    *
-   * @param command A command sent by the client
-   * @return True when the command is handled, and we should continue receiving next
+   * @param command A command to handle.
+   * @return True when the command is handled, and we should continue handling next
    *     commands from the client.
    */
   private boolean handleCommand(Command command) {
@@ -118,6 +122,11 @@ public class TCPClientHandler {
     return shouldContinue;
   }
 
+  /**
+   * Send a message to the client
+   *
+   * @param message The message to send.
+   */
   private void sendToClient(String message) {
     try {
       socketWriter.println(message);
@@ -126,6 +135,9 @@ public class TCPClientHandler {
     }
   }
 
+  /**
+   * Closes the socket connection to the client.
+   */
   private void closeSocket() {
     try {
       clientSocket.close();

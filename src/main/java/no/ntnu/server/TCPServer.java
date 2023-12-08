@@ -10,7 +10,7 @@ import java.net.Socket;
 public class TCPServer {
   public static final int TCP_PORT = 1235;
   private ServerSocket serverSocket;
-  private boolean isRunning;
+  private volatile boolean isRunning;
 
   public static void main(String[] args) {
     TCPServer server = new TCPServer();
@@ -21,9 +21,13 @@ public class TCPServer {
     if (openListeningSocket()) {
       isRunning = true;
       while (isRunning) {
-        Socket clientSocket = acceptNextClient();
-        TCPClientHandler clientHandler = new TCPClientHandler(clientSocket);
-        clientHandler.run();
+        try {
+          Socket clientSocket = serverSocket.accept();
+          // Handle each client connection is a new thread
+          new Thread(new TCPClientHandler(clientSocket)).start();
+        } catch (IOException e) {
+          System.err.println("Error accepting client connection: " + e.getMessage());
+        }
       }
     }
 
@@ -64,5 +68,13 @@ public class TCPServer {
    */
   public void shutdown() {
     isRunning = false;
+    try {
+      if (serverSocket != null) {
+        serverSocket.close();
+      }
+    } catch (IOException e) {
+      System.err.println("Error while closing the server socket: " + e.getMessage());
+    }
   }
+
 }
