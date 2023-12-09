@@ -3,7 +3,10 @@ package no.ntnu.run;
 import no.ntnu.controlpanel.CommunicationChannel;
 import no.ntnu.controlpanel.ControlPanelLogic;
 import no.ntnu.controlpanel.FakeCommunicationChannel;
+import no.ntnu.controlpanel.TCPCommunicationChannel;
+import no.ntnu.controlpanel.TCPCommunicationChannelAdapter;
 import no.ntnu.gui.controlpanel.ControlPanelApplication;
+import no.ntnu.server.TCPClient;
 import no.ntnu.tools.Logger;
 
 /**
@@ -26,7 +29,7 @@ public class ControlPanelStarter {
    *             use real socket communication.
    */
   public static void main(String[] args) {
-    boolean fake = true;
+    boolean fake = false;
     if (args.length == 1 && "fake".equals(args[0])) {
       fake = true;
       Logger.info("Using FAKE events");
@@ -55,11 +58,15 @@ public class ControlPanelStarter {
   }
 
   private CommunicationChannel initiateSocketCommunication(ControlPanelLogic logic) {
-    // TODO - here you initiate TCP/UDP socket communication
-    // You communication class(es) may want to get reference to the logic and call necessary
-    // logic methods when events happen (for example, when sensor data is received)
-    return null;
-  }
+    TCPCommunicationChannel tcpChannel = new TCPCommunicationChannel();
+    if (tcpChannel.open()) {
+        logic.setCommunicationChannel(new TCPCommunicationChannelAdapter(tcpChannel));
+        return new TCPCommunicationChannelAdapter(tcpChannel);
+    } else {
+        return null; // Failed to open communication channel
+    }
+}
+
 
   private CommunicationChannel initiateFakeSpawner(ControlPanelLogic logic) {
     // Here we pretend that some events will be received with a given delay
