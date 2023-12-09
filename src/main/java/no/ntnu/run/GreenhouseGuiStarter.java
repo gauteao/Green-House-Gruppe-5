@@ -20,6 +20,6 @@ public class GreenhouseGuiStarter {
       fake = true;
       Logger.info("Using FAKE events");
     }
-    GreenhouseApplication.startApp(fake);
+    GreenhouseApplication.startApp(false);
   }
 }

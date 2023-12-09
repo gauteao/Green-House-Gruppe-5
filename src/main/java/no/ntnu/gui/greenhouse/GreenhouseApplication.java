@@ -51,8 +51,10 @@ public class GreenhouseApplication extends Application implements NodeStateListe
   public static void startApp(boolean fake) {
     Logger.info("Running greenhouse simulator with JavaFX GUI...");
     simulator = new GreenhouseSimulator(fake);
+    fake = false;
     launch();
   }
+
 
   @Override
   public void onNodeReady(SensorActuatorNode node) {

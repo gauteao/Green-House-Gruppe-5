@@ -28,7 +28,7 @@ public class GreenhouseSimulator {
    *             socket communication
    */
   public GreenhouseSimulator(boolean fake) {
-    this.fake = false;
+    this.fake = fake;
   }
 
   /**
