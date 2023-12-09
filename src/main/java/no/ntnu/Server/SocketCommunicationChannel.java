@@ -41,7 +41,6 @@ public boolean open() {
 
 // Additional methods and overrides as needed
 
-@Override
 public void close() {
     try {
         if (outputStream != null) {
