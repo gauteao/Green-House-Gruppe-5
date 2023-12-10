@@ -62,7 +62,7 @@ public class ControlPanelStarter {
 
   private CommunicationChannel initiateSocketCommunication(ControlPanelLogic logic) {
     try{
-      Socket socket = new Socket("localhost", 1234);
+      Socket socket = new Socket("localhost", 55723);
       Logger.info("Connected to the server");
 
       ObjectOutputStream getOutputStream = new ObjectOutputStream(socket.getOutputStream());

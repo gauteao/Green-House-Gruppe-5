@@ -16,11 +16,11 @@ public class Server {
     public void startServer(){
 
         try {
-
+            System.out.println("Listening to port: " + serverSocket.getLocalPort());
             while(isRunning && !serverSocket.isClosed()){
-                Socket socket = serverSocket.accept();
+                ClientHandler clientHandler = new ClientHandler(serverSocket.accept());
+                serverSocket.accept();
                 System.out.println("A new client has connected");
-                ClientHandler clientHandler = new ClientHandler(socket);
 
                 Thread thread = new Thread(clientHandler);
                 thread.start();
@@ -48,7 +48,7 @@ public class Server {
 
         public static void main(String[] args) throws IOException {
             
-            ServerSocket serverSocket = new ServerSocket(1234);
+            ServerSocket serverSocket = new ServerSocket(55723);
             Server server = new Server(serverSocket);
             server.startServer();
         }

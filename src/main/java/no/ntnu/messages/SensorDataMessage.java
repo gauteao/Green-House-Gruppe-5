@@ -14,6 +14,18 @@ public class SensorDataMessage implements Message {
         this.humidity = humidity;
     }
 
+    public int getNodeId() {
+        return nodeId;
+    }
+
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public double getHumidity() {
+        return humidity;
+    }
+
     @Override
     public MessageType getMessageType() {
         return messageType;
@@ -32,6 +44,4 @@ public class SensorDataMessage implements Message {
     public int getSize() {
         return 24; // Size of the message in bytes
     }
-
-    // Getters for nodeId, temperature, and humidity
 }
